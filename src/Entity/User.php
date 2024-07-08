@@ -20,26 +20,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Assert\Email(
-        message: 'The email {{ value }} is not a valid email.',
-    )]
+    #[Assert\NotBlank]
+    #[ORM\Column(length: 255)]
+    private ?string $username = null;
+
+    #[Assert\NotBlank]
     #[ORM\Column(length: 180)]
     private ?string $email = null;
+
+    /**
+     * @var string The hashed password
+     */
+    #[Assert\NotBlank]
+    #[ORM\Column]
+    private ?string $password = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
     private array $roles = [];
-
-    /**
-     * @var string The hashed password
-     */
-    #[ORM\Column]
-    private ?string $password = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $username = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -50,16 +50,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: Conversation::class, inversedBy: 'users')]
     private Collection $conversations;
 
+    /**
+     * @var Collection<int, Message>
+     */
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'User', orphanRemoval: true)]
+    private Collection $messages;
+
     public function __construct()
     {
         $this->conversations = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
         $this->roles = ['ROLE_USER'];
+        $this->messages = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(string $username): static
+    {
+        $this->username = $username;
+
+        return $this;
     }
 
     public function getEmail(): ?string
@@ -75,13 +93,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
+     * @see PasswordAuthenticatedUserInterface
      */
-    public function getUserIdentifier(): string
+    public function getPassword(): string
     {
-        return (string) $this->email;
+        return $this->password;
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->password = $password;
+
+        return $this;
     }
 
     /**
@@ -109,18 +132,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @see PasswordAuthenticatedUserInterface
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
      */
-    public function getPassword(): string
+    public function getUserIdentifier(): string
     {
-        return $this->password;
-    }
-
-    public function setPassword(string $password): static
-    {
-        $this->password = $password;
-
-        return $this;
+        return (string) $this->email;
     }
 
     /**
@@ -130,18 +148,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
-    }
-
-    public function getUsername(): ?string
-    {
-        return $this->username;
-    }
-
-    public function setUsername(string $username): static
-    {
-        $this->username = $username;
-
-        return $this;
     }
 
     public function getCreatedAt(): ?\DateTimeImmutable
@@ -178,5 +184,40 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->conversations->removeElement($conversation);
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Message>
+     */
+    public function getMessages(): Collection
+    {
+        return $this->messages;
+    }
+
+    public function addMessage(Message $message): static
+    {
+        if (!$this->messages->contains($message)) {
+            $this->messages->add($message);
+            $message->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessage(Message $message): static
+    {
+        if ($this->messages->removeElement($message)) {
+            // set the owning side to null (unless already changed)
+            if ($message->getUser() === $this) {
+                $message->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function __toString()
+    {
+        return $this->username;
     }
 }
