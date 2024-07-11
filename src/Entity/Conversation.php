@@ -6,6 +6,7 @@ use App\Repository\ConversationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ConversationRepository::class)]
@@ -14,22 +15,28 @@ class Conversation
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['conversation'])]
     private ?int $id = null;
 
     #[Assert\NotBlank]
     #[ORM\Column(length: 255)]
+    #[Groups(['conversation'])]
     private ?string $name = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: "text")]
+    #[Groups(['conversation'])]
     private ?string $token = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: "text")]
+    #[Groups(['conversation'])]
     private ?string $public_key = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: "text")]
+    #[Groups(['conversation'])]
     private ?string $private_key = null;
 
     #[ORM\Column]
+    #[Groups(['conversation'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     /**

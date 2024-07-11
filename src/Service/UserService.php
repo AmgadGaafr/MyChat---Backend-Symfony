@@ -14,18 +14,23 @@ class UserService
 
     public function __construct(private EntityManagerInterface $em, private UserPasswordHasherInterface $passwordHasher, private SerializerInterface $serializer, private ValidatorService $validatorService)
     {
-        
     }
     // Regex for password validation
     const REGEX = "/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^\w\d\s])\S{8,}$/";
 
-    public function create($data)
+    /**
+     * Create a new user
+     *
+     * @param [Json] $data
+     * @return JsonResponse
+     */
+    public function create($data): JsonResponse
     {
         // Deserialize the JSON data to a User object
         $user = $this->serializer->deserialize($data, User::class, 'json');
         // Check if the user object is not empty
         if (!empty($user)) {
-            
+
             if (empty($user->getUsername())) {
 
                 return new JsonResponse(['message' => 'Username is required'], Response::HTTP_BAD_REQUEST);
@@ -47,14 +52,13 @@ class UserService
             }
             // Validate the user object
             $errors = $this->validatorService->validate($user);
-            
+
             if ($errors) {
-            
+
                 return $errors;
             }
 
-            try
-            {
+            try {
                 $user->setCreatedAt(new \DateTimeImmutable());
                 $user->setPassword($this->passwordHasher->hashPassword($user, $user->getPassword()));
 
@@ -62,14 +66,11 @@ class UserService
                 $this->em->flush();
 
                 $newUser = $user->getUsername();
-            }
-            catch (\Exception $e)
-            {
+            } catch (\Exception $e) {
                 return new JsonResponse(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
         }
-        
+
         return new JsonResponse(['message' => "User : $newUser created !"], Response::HTTP_CREATED);
     }
-
 }
