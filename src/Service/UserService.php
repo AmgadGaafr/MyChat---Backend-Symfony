@@ -21,10 +21,10 @@ class UserService
     /**
      * Create a new user
      *
-     * @param [Json] $data
+     * @param [string] $data
      * @return JsonResponse
      */
-    public function create($data): JsonResponse
+    public function create(string $data): JsonResponse
     {
         // Deserialize the JSON data to a User object
         $user = $this->serializer->deserialize($data, User::class, 'json');

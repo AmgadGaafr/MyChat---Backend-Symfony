@@ -3,47 +3,41 @@
 namespace App\Controller;
 
 use App\Entity\Conversation;
-use App\Service\EncryptionService;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Service\ConversationService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-#[Route('/api/conversation_', name: 'app_conversation_')]
+#[Route('/api/conversation/', name: 'app_conversation_')]
 class ConversationController extends AbstractController
 {
+    /**
+     * Create a new conversation
+     *
+     * @param Request $request
+     * @param ConversationService $conversation
+     * @return JsonResponse
+     */
     #[Route('create', name: 'create', methods: ['POST'])]
-    public function create(Request $request, EncryptionService $encrypt, EntityManagerInterface $em): JsonResponse
+    public function create(Request $request, ConversationService $conversation): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
+        // Call the create method from the ConversationService
+        return $conversation->create($request->getContent(), $this->getUser());
+    }
 
-        if (empty($data['name'])) {
-            return $this->json([
-                'message' => 'Name is required',
-                'status' => '400'
-            ]);
-        }
-
-        $conversation = new Conversation();
-        $conversation->setName($data['name']);
-
-        $generatedToken = $encrypt->generateToken();
-        $conversation->setToken($generatedToken);
-
-        $keys = $encrypt->generateKeys();
-
-        $conversation->setPublicKey($keys['public_key']);
-        $conversation->setPrivateKey($encrypt->encryptPrivateKey($keys['private_key'], $generatedToken));
-
-        $conversation->addUser($this->getUser());
-
-        $em->persist($conversation);
-        $em->flush();
-
-        return $this->json([
-            'message' => 'Conversation created successfully',
-            'status' => '200'
-        ]);
+    /**
+     * Add a user to a conversation
+     *
+     * @param Request $request
+     * @param Conversation $conversation
+     * @param ConversationService $conversationService
+     * @return JsonResponse
+     */
+    #[Route('{id}/add_user', name: 'add_user', methods: ['POST'])]
+    public function addUser(Request $request, Conversation $conversation, ConversationService $conversationService): JsonResponse
+    {
+        // Call the addUser method from the ConversationService
+        return $conversationService->addUser($request->getContent(), $conversation, $this->getUser());
     }
 }

@@ -25,7 +25,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[Assert\NotBlank]
     #[ORM\Column(length: 255, unique: true)]
-    #[Groups("users")]
+    #[Groups(["users", "message"])]
     private ?string $username = null;
 
     #[Assert\NotBlank]

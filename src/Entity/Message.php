@@ -2,8 +2,9 @@
 
 namespace App\Entity;
 
-use App\Repository\MessageRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\MessageRepository;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
@@ -12,13 +13,16 @@ class Message
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups("message")]
     private ?int $id = null;
 
     #[Assert\NotBlank]
     #[ORM\Column(length: 5000)]
+    #[Groups("message")]
     private ?string $content = null;
 
     #[ORM\Column]
+    #[Groups("message")]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'messages')]
@@ -26,6 +30,7 @@ class Message
 
     #[ORM\ManyToOne(inversedBy: 'messages')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups("message")]
     private ?User $User = null;
 
     public function __construct()

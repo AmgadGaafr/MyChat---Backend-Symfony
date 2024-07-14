@@ -21,7 +21,7 @@ class UserController extends AbstractController
      * @return JsonResponse
      */
     #[Route('create', name: 'create', methods: ['POST'])]
-    public function create(Request $request, UserService $userService): JsonResponse
+    public function create(Request $request, UserService $userService)
     {
         // Call the create method from the UserService
         return $userService->create($request->getContent());
@@ -35,7 +35,7 @@ class UserController extends AbstractController
     #[Route('get_info', name: 'get_info', methods: ['GET'])]
     public function get_info(): JsonResponse
     {
-
+        // Return the current user
         return $this->json($this->getUser(), Response::HTTP_OK, [], ["groups" => "users"]);
     }
 
@@ -48,9 +48,9 @@ class UserController extends AbstractController
     #[Route('get_conversations', name: 'get_conversations', methods: ['GET'])]
     public function get_conversations(ConversationRepository $conversationRepo): JsonResponse
     {
-
+        // Get all conversations for the current user
         $conversation = $conversationRepo->findUserConversations($this->getUser());
-
+        // Return the conversations
         return $this->json($conversation, Response::HTTP_OK, [], ["groups" => "conversation"]);
     }
 }
