@@ -3,7 +3,9 @@
 namespace App\Service;
 
 use App\Entity\User;
+use App\Entity\Message;
 use App\Entity\Conversation;
+use App\Service\MessageService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,12 +14,12 @@ use Symfony\Component\Serializer\SerializerInterface;
 class ConversationService
 {
 
-    public function __construct(private EncryptionService $encrypt, private EntityManagerInterface $em, private SerializerInterface $serializer)
+    public function __construct(private EncryptionService $encrypt, private EntityManagerInterface $em, private SerializerInterface $serializer, private MessageService $messageService)
     {
     }
 
     /**
-     * Create a new conversation
+     * Create a new conversation with a user and a message
      *
      * @param string $data
      * @param User $user
@@ -27,41 +29,54 @@ class ConversationService
     {
         $decodedData = json_decode($data, true);
 
+        // Check if 'conversationWith' is present in the decoded data
         if (empty($decodedData['conversationWith'])) {
             return new JsonResponse(['message' => 'User is required'], Response::HTTP_BAD_REQUEST);
         }
 
+        // Find the user with whom the conversation is to be created
         $conversationWith = $this->em->getRepository(User::class)->find($decodedData['conversationWith']);
 
+        // Check if the 'conversationWith' user exists
         if (!$conversationWith) {
             return new JsonResponse(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $conversation = $this->serializer->deserialize($data, Conversation::class, 'json');
-
-        if (empty($conversation->getName())) {
-            return new JsonResponse(['message' => 'Name is required'], Response::HTTP_BAD_REQUEST);
+        // Check if messages are present in the decoded data
+        if (empty($decodedData['message'])) {
+            return new JsonResponse(['message' => 'Message is required'], Response::HTTP_BAD_REQUEST);
         }
 
-        if (empty($conversation->getName())) {
-            return new JsonResponse(['message' => 'Name is required'], Response::HTTP_BAD_REQUEST);
-        }
+        // Create a new conversation and assign users
+        $conversation = new Conversation();
+        $conversation->setName($decodedData['name']);
+        $conversation->addUser($user);
+        $conversation->addUser($conversationWith);
 
+        // Generate and assign the token and keys
         $generatedToken = $this->encrypt->generateToken();
         $conversation->setToken($generatedToken);
 
         $keys = $this->encrypt->generateKeys();
-
         $conversation->setPublicKey($keys['public_key']);
         $conversation->setPrivateKey($this->encrypt->encryptPrivateKey($keys['private_key'], $generatedToken));
 
-        $conversation->addUser($user);
-        $conversation->addUser($conversationWith);
-
+        // Persist the conversation entity
         $this->em->persist($conversation);
+
+        // Create and persist the first message
+        $message = new Message();
+        $message->setContent($decodedData['message']);
+        $message->setConversation($conversation);
+        $message->setUser($user);
+
+        $this->em->persist($message);
+
+        // Save the changes to the database
         $this->em->flush();
 
-        return new JsonResponse(['message' => 'Conversation created successfully'], Response::HTTP_CREATED);
+        // JSON response indicating successful operation
+        return new JsonResponse(['message' => 'Conversation created successfully', 'conversation_id' => $conversation->getId()], Response::HTTP_CREATED);
     }
 
     /**
