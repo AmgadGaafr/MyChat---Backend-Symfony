@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Service\UserService;
-use App\Repository\ConversationRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -37,20 +36,5 @@ class UserController extends AbstractController
     {
         // Return the current user
         return $this->json($this->getUser(), Response::HTTP_OK, [], ["groups" => "users"]);
-    }
-
-    /**
-     * Get all conversations for the current user
-     *
-     * @param ConversationRepository $conversationRepo
-     * @return JsonResponse
-     */
-    #[Route('get_conversations', name: 'get_conversations', methods: ['GET'])]
-    public function get_conversations(ConversationRepository $conversationRepo): JsonResponse
-    {
-        // Get all conversations for the current user
-        $conversation = $conversationRepo->findUserConversations($this->getUser());
-        // Return the conversations
-        return $this->json($conversation, Response::HTTP_OK, [], ["groups" => "conversation"]);
     }
 }

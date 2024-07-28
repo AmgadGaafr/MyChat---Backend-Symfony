@@ -20,12 +20,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups("users")]
+    #[Groups(["users", "conversation"])]
     private ?int $id = null;
 
     #[Assert\NotBlank]
     #[ORM\Column(length: 255, unique: true)]
-    #[Groups(["users", "message"])]
+    #[Groups(["users", "message", "conversation"])]
     private ?string $username = null;
 
     #[Assert\NotBlank]

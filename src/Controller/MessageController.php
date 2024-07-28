@@ -24,7 +24,7 @@ class MessageController extends AbstractController
     public function create(Request $request, Conversation $conversation, MessageService $message): JsonResponse
     {
         // Call the create method from the MessageService class
-        return $message->create($conversation, $request->getContent(), $this->getUser());
+        return $message->create($conversation, $request->getContent(), $this->getUser(), true);
     }
 
     /**

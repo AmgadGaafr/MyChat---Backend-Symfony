@@ -24,19 +24,15 @@ class Conversation
     private ?string $name = null;
 
     #[ORM\Column(type: "text")]
-    #[Groups(['conversation'])]
     private ?string $token = null;
 
     #[ORM\Column(type: "text")]
-    #[Groups(['conversation'])]
     private ?string $public_key = null;
 
     #[ORM\Column(type: "text")]
-    #[Groups(['conversation'])]
     private ?string $private_key = null;
 
     #[ORM\Column]
-    #[Groups(['conversation'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     /**
@@ -49,6 +45,7 @@ class Conversation
      * @var Collection<int, Message>
      */
     #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'conversation', cascade: ['persist'])]
+    #[Groups(['conversation'])]
     private Collection $messages;
 
     public function __construct()

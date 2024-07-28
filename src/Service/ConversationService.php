@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\User;
 use App\Entity\Message;
 use App\Entity\Conversation;
-use App\Service\MessageService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,7 +13,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 class ConversationService
 {
 
-    public function __construct(private EncryptionService $encrypt, private EntityManagerInterface $em, private SerializerInterface $serializer, private MessageService $messageService)
+    public function __construct(private EncryptionService $encrypt, private EntityManagerInterface $em, private SerializerInterface $serializer)
     {
     }
 

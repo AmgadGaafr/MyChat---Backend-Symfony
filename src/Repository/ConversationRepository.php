@@ -27,6 +27,7 @@ class ConversationRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('c')
             ->innerJoin('c.users', 'u')
+            ->innerJoin('c.messages', 'm')
             ->where('u.id = :user')
             ->setParameter('user', $user)
             ->getQuery()
