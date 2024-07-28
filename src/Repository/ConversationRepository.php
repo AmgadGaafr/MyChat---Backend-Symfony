@@ -30,6 +30,7 @@ class ConversationRepository extends ServiceEntityRepository
             ->innerJoin('c.messages', 'm')
             ->where('u.id = :user')
             ->setParameter('user', $user)
+            ->orderBy('m.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
     }
