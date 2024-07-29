@@ -45,7 +45,6 @@ class Conversation
      * @var Collection<int, Message>
      */
     #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'conversation', cascade: ['persist'])]
-    #[Groups(['conversation'])]
     private Collection $messages;
 
     public function __construct()

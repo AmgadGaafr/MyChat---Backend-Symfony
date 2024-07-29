@@ -13,12 +13,12 @@ class Message
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["message", "conversation"])]
+    #[Groups(["message"])]
     private ?int $id = null;
 
     #[Assert\NotBlank]
     #[ORM\Column(length: 5000)]
-    #[Groups(["message", "conversation"])]
+    #[Groups(["message"])]
     private ?string $content = null;
 
     #[ORM\Column]

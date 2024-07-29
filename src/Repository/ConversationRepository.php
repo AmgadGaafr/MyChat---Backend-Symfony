@@ -2,9 +2,11 @@
 
 namespace App\Repository;
 
+use App\Entity\User;
+use App\Entity\Message;
 use App\Entity\Conversation;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @extends ServiceEntityRepository<Conversation>
@@ -16,23 +18,49 @@ class ConversationRepository extends ServiceEntityRepository
         parent::__construct($registry, Conversation::class);
     }
 
-
     /**
-     * Get user conversations
+     * Get user conversations with the last message
      *
-     * @param [type] $user
+     * @param User $user
      * @return array
      */
-    public function findUserConversations($user): array
+    public function findUserConversations(User $user): array
     {
-        return $this->createQueryBuilder('c')
+        $em = $this->getEntityManager();
+
+        // Step 1: Get conversations with at least one message
+        $conversations = $em->createQueryBuilder()
+            ->select('c')
+            ->from(Conversation::class, 'c')
+            ->innerJoin('c.messages', 'm') // Ensure there is at least one message
             ->innerJoin('c.users', 'u')
-            ->innerJoin('c.messages', 'm')
-            ->where('u.id = :user')
+            ->where('u = :user')
             ->setParameter('user', $user)
-            ->orderBy('m.createdAt', 'DESC')
+            ->groupBy('c.id')
+            ->orderBy('c.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
+
+        // Step 2: Get the last message for each conversation
+        $results = [];
+        foreach ($conversations as $conversation) {
+            $latestMessage = $em->createQueryBuilder()
+                ->select('m')
+                ->from(Message::class, 'm')
+                ->where('m.conversation = :conversation')
+                ->setParameter('conversation', $conversation->getId())
+                ->orderBy('m.createdAt', 'DESC')
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            $results[] = [
+                'conversation' => $conversation,
+                'lastMessage' => $latestMessage,
+            ];
+        }
+
+        return $results;
     }
 
     //    public function findOneBySomeField($value): ?Conversation
